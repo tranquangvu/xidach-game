@@ -101,8 +101,8 @@ function isBust(hand) {
 }
 
 function checkAndReshuffle() {
-  if (gameState.deck.length < 20) {
-    gameState.deck = createMultipleDecks(6);
+  if (gameState.deck.length < 10) {
+    gameState.deck = createMultipleDecks(1);
   }
 }
 
@@ -267,7 +267,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    gameState.deck = createMultipleDecks(6);
+    gameState.deck = createMultipleDecks(1);
     gameState.dealerHand = [];
     gameState.currentPlayerIndex = 0;
     gameState.gameStatus = 'dealing';
@@ -412,7 +412,7 @@ io.on('connection', (socket) => {
 
     // Automatically deal cards if we have exactly 3 players
     if (players.length === gameState.maxPlayers) {
-      gameState.deck = createMultipleDecks(6);
+      gameState.deck = createMultipleDecks(1);
       gameState.dealerHand = [];
       gameState.currentPlayerIndex = 0;
       gameState.gameStatus = 'dealing';
