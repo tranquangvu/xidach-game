@@ -63,20 +63,20 @@ xidach-game/
 
 ### Prerequisites
 
-- Node.js 18+ and npm (or yarn/pnpm)
+- Node.js 18+ and pnpm (or npm/yarn)
 
 ### Installation
 
 1. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 ### Running the Game
 
 Start the development server:
 ```bash
-npm run dev
+pnpm dev
 ```
 
 The game will be available at `http://localhost:5173` (or the port Vite assigns).
@@ -85,12 +85,12 @@ The game will be available at `http://localhost:5173` (or the port Vite assigns)
 
 Build the production bundle:
 ```bash
-npm run build
+pnpm build
 ```
 
 Preview the production build:
 ```bash
-npm run preview
+pnpm preview
 ```
 
 ## How to Play
