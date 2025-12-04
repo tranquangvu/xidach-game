@@ -23,7 +23,15 @@ interface MultiplayerStore {
   isMyTurn: () => boolean;
 }
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+// Use relative path for Vercel deployment, or environment variable for custom server
+const SOCKET_URL =
+  (typeof import.meta !== 'undefined' &&
+    // @ts-expect-error: VITE_SOCKET_URL might be defined in Vite's ImportMetaEnv
+    import.meta.env && import.meta.env.VITE_SOCKET_URL)
+    // @ts-expect-error: import.meta.env.PROD might exist in Vite
+    ? import.meta.env.VITE_SOCKET_URL
+    // @ts-expect-error: import.meta.env.PROD might exist in Vite
+    : (import.meta.env && import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
   socket: null,
@@ -34,8 +42,12 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
   error: null,
 
   connect: (playerName: string) => {
-    const socket = io(SOCKET_URL, {
-      transports: ['websocket'],
+    // Fix: Always use SOCKET_URL. The logic is already handled in SOCKET_URL definition.
+    const socketUrl = SOCKET_URL || window.location.origin;
+
+    const socket = io(socketUrl, {
+      path: '/api/socket',
+      transports: ['websocket', 'polling'],
     });
 
     socket.on('connect', () => {

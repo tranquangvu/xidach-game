@@ -22,8 +22,8 @@ A modern, retro-styled multiplayer Blackjack (Xì Dách) game built with React, 
   - Blackjack (21 with 2 cards)
   - Bust (over 21)
   - Win/Lose/Push
-- Uses 6 decks shuffled together
-- Auto-reshuffles when less than 20 cards remain
+- Uses 1 deck (52 cards)
+- Auto-reshuffles when less than 10 cards remain
 
 ## Tech Stack
 
@@ -40,19 +40,16 @@ A modern, retro-styled multiplayer Blackjack (Xì Dách) game built with React, 
 
 ```
 xidach-game/
-├── server/
-│   └── index.js         # Socket.io server for multiplayer
+├── api/
+│   └── socket.js        # Socket.io server (works for both local dev & Vercel)
 ├── src/
 │   ├── components/       # React components
 │   │   ├── Card.tsx     # Individual card component
 │   │   ├── Hand.tsx     # Hand display component
-│   │   ├── Controls.tsx # Single-player controls
-│   │   ├── GameBoard.tsx # Single-player game board
 │   │   ├── PlayerJoin.tsx # Player join/login screen
 │   │   ├── MultiplayerGameBoard.tsx # Multiplayer game board
 │   │   └── MultiplayerControls.tsx # Multiplayer controls
 │   ├── store/
-│   │   ├── gameStore.ts # Single-player Zustand store
 │   │   └── multiplayerStore.ts # Multiplayer Zustand store
 │   ├── utils/
 │   │   ├── deck.ts      # Deck creation and shuffling
@@ -66,20 +63,25 @@ xidach-game/
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
+├── vercel.json          # Vercel deployment configuration
 └── tailwind.config.js
 ```
+
+**Note**: The `api/socket.js` file automatically detects the environment:
+- **Local**: Runs as Express server on port 3001
+- **Vercel**: Runs as serverless function
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm (or yarn/pnpm)
+- Node.js 18+ and pnpm
 
 ### Installation
 
 1. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 ### Running the Multiplayer Game
@@ -88,7 +90,7 @@ The game requires both a backend server and frontend to run:
 
 **Option 1: Run both together (recommended)**
 ```bash
-npm run dev:all
+pnpm run dev:all
 ```
 
 This will start:
@@ -99,34 +101,22 @@ This will start:
 
 Terminal 1 - Backend server:
 ```bash
-npm run dev:server
+pnpm run dev:server
 ```
 
 Terminal 2 - Frontend:
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### Configuration
 
-The frontend connects to the backend server. By default, it connects to `http://localhost:3001`.
+The frontend connects to the backend server. By default, it connects to `http://localhost:3001` in development.
 
 To change the server URL, create a `.env` file:
 ```env
 VITE_SOCKET_URL=http://localhost:3001
 ```
-
-### Playing Multiplayer
-
-1. Open the game in your browser: `http://localhost:5173`
-2. Enter your name and click "JOIN GAME"
-3. Up to 3 players can join from different browsers/devices
-4. Once players have joined, any player can click "DEAL CARDS"
-5. Players take turns in order (Player 1, Player 2, Player 3, then Dealer)
-6. Each player can Hit, Stand, or Double (on first turn only)
-7. After all players finish, the dealer plays automatically
-8. Results are shown for each player
-9. Click "NEW GAME" to start another round
 
 ### Building for Production
 
@@ -181,6 +171,67 @@ The game uses a retro arcade aesthetic:
 - Rounded cards with white borders
 - Card drop shadows
 - Smooth animations on card dealing
+
+## Deployment to Vercel
+
+This project is configured to deploy both the frontend and Socket.io server to Vercel.
+
+### Important Notes
+
+⚠️ **Socket.io on Vercel Limitations:**
+- Vercel serverless functions have execution time limits
+- Socket.io connections may reset on function cold starts
+- For production with many concurrent users, consider using a dedicated Socket.io service (Railway, Render, etc.)
+
+### Deployment Steps
+
+1. **Install Vercel CLI** (if not already installed):
+```bash
+pnpm add -g vercel
+```
+
+2. **Deploy to Vercel**:
+```bash
+vercel
+```
+
+Or deploy to production:
+```bash
+vercel --prod
+```
+
+3. **Environment Variables** (Optional):
+If you need to use a custom Socket.io server URL, set:
+```
+VITE_SOCKET_URL=https://your-custom-server.com
+```
+
+### How It Works
+
+1. **Frontend**: Built with Vite and served as static files
+2. **Socket.io Server**: Runs as a Vercel serverless function at `/api/socket`
+3. **Client Connection**: Automatically connects to `/api/socket` in production
+
+### Alternative: Separate Socket.io Server
+
+If you need more reliable Socket.io connections, you can:
+
+1. Deploy the Socket.io server separately (Railway, Render, Heroku, etc.)
+2. Set `VITE_SOCKET_URL` environment variable in Vercel to point to your server
+3. The frontend will automatically use that URL
+
+Example with Railway:
+```bash
+# Deploy server to Railway
+# Get the URL: https://your-app.railway.app
+# Set in Vercel: VITE_SOCKET_URL=https://your-app.railway.app
+```
+
+### Troubleshooting
+
+- **Socket.io not connecting**: Check browser console for connection errors
+- **CORS issues**: The server is configured to allow all origins (`*`)
+- **Cold starts**: First connection may be slow due to serverless function cold start
 
 ## License
 
