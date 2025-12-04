@@ -1,15 +1,16 @@
-import { useEffect } from 'react';
-import { GameBoard } from './components/GameBoard';
-import { useGameStore } from './store/gameStore';
+import { MultiplayerGameBoard } from './components/MultiplayerGameBoard';
+import { PlayerJoin } from './components/PlayerJoin';
+import { useMultiplayerStore } from './store/multiplayerStore';
 
 function App() {
-  const startNewGame = useGameStore((state) => state.startNewGame);
+  const { isConnected, playerId } = useMultiplayerStore();
 
-  useEffect(() => {
-    startNewGame();
-  }, [startNewGame]);
+  // Show join screen if not connected or no player ID
+  if (!isConnected || !playerId) {
+    return <PlayerJoin />;
+  }
 
-  return <GameBoard />;
+  return <MultiplayerGameBoard />;
 }
 
 export default App;

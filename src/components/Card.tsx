@@ -24,10 +24,10 @@ export const Card = ({ card, isHidden = false, index = 0 }: CardProps) => {
   if (isHidden) {
     return (
       <div
-        className="w-20 h-28 md:w-24 md:h-36 bg-gradient-to-br from-neon-green to-green-600 rounded-lg border-4 border-white shadow-card flex items-center justify-center card-animation"
+        className="w-16 h-24 sm:w-20 sm:h-28 md:w-24 md:h-36 bg-gradient-to-br from-neon-green to-green-600 rounded-lg border-4 border-white shadow-card flex items-center justify-center card-animation"
         style={{ animationDelay: `${index * 0.1}s` }}
       >
-        <div className="text-2xl md:text-4xl font-pixel text-dark-bg">?</div>
+        <div className="text-xl sm:text-2xl md:text-4xl font-pixel text-dark-bg">?</div>
       </div>
     );
   }
@@ -37,19 +37,19 @@ export const Card = ({ card, isHidden = false, index = 0 }: CardProps) => {
 
   return (
     <div
-      className="w-20 h-28 md:w-24 md:h-36 bg-white rounded-lg border-4 border-white shadow-card flex flex-col items-center justify-center p-2 card-animation relative"
+      className="w-16 h-24 sm:w-20 sm:h-28 md:w-24 md:h-36 bg-white rounded-lg border-4 border-white shadow-card flex flex-col items-center justify-center p-1 md:p-2 card-animation relative"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
       {/* Rank in top-left */}
-      <div className={`absolute top-1 left-1 text-base md:text-xl font-bold ${suitColor} font-pixel leading-tight`}>
+      <div className={`absolute top-0.5 left-0.5 md:top-1 md:left-1 text-xs sm:text-sm md:text-xl font-bold ${suitColor} font-pixel leading-tight`}>
         {card.rank}
       </div>
       {/* Rank in bottom-right (rotated) */}
-      <div className={`absolute bottom-1 right-1 text-base md:text-xl font-bold ${suitColor} font-pixel leading-tight rotate-180`}>
+      <div className={`absolute bottom-0.5 right-0.5 md:bottom-1 md:right-1 text-xs sm:text-sm md:text-xl font-bold ${suitColor} font-pixel leading-tight rotate-180`}>
         {card.rank}
       </div>
       {/* Suit symbol in center */}
-      <div className={`text-3xl md:text-5xl ${suitColor} font-bold leading-none`}>
+      <div className={`text-xl sm:text-2xl md:text-5xl ${suitColor} font-bold leading-none`}>
         {suitSymbol}
       </div>
     </div>

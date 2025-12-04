@@ -7,16 +7,35 @@ export interface Card {
   id: string;
 }
 
-export type GameStatus = 'waiting' | 'player-turn' | 'dealer-turn' | 'finished';
+export type GameStatus = 'waiting' | 'dealing' | 'playing' | 'dealer-turn' | 'finished';
 export type GameResult = 'blackjack' | 'bust' | 'win' | 'lose' | 'push' | null;
+export type PlayerStatus = 'waiting' | 'playing' | 'finished';
+
+export interface Player {
+  id: string;
+  name: string;
+  hand: Card[];
+  score: number;
+  status: PlayerStatus;
+  result: GameResult;
+  isCurrentPlayer?: boolean;
+}
 
 export interface GameState {
-  deck: Card[];
-  playerHand: Card[];
+  deck: { length: number };
   dealerHand: Card[];
-  gameStatus: GameStatus;
-  result: GameResult;
-  playerScore: number;
   dealerScore: number;
-  canDouble: boolean;
+  players: Player[];
+  gameStatus: GameStatus;
+  currentPlayerIndex: number;
+  disconnectMessage?: string | null;
+}
+
+export interface SocketGameState {
+  deck: { length: number };
+  dealerHand: Card[];
+  dealerScore: number;
+  players: Player[];
+  gameStatus: GameStatus;
+  currentPlayerIndex: number;
 }

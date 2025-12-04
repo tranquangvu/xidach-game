@@ -1,10 +1,12 @@
-# Xì Dách - Blackjack Game
+# Xì Dách - Multiplayer Blackjack Game
 
-A modern, retro-styled Blackjack (Xì Dách) game built with React, TypeScript, Vite, and TailwindCSS.
+A modern, retro-styled multiplayer Blackjack (Xì Dách) game built with React, TypeScript, Vite, TailwindCSS, and Socket.io.
 
 ## Features
 
 - 🎮 Classic Blackjack gameplay with standard rules
+- 👥 **Multiplayer support** - Up to 3 players can join from different browsers
+- 🔄 **Real-time synchronization** - WebSocket-based game state sync
 - 🎨 Retro arcade-style UI with neon green highlights
 - 📱 Fully responsive design (mobile and desktop)
 - 🎯 Clean, modular architecture
@@ -30,20 +32,28 @@ A modern, retro-styled Blackjack (Xì Dách) game built with React, TypeScript, 
 - **Vite** - Build tool and dev server
 - **TailwindCSS** - Styling
 - **Zustand** - State management
+- **Socket.io** - Real-time multiplayer communication
+- **Express** - Backend server
 - **Press Start 2P** - Pixel-style font
 
 ## Project Structure
 
 ```
 xidach-game/
+├── server/
+│   └── index.js         # Socket.io server for multiplayer
 ├── src/
 │   ├── components/       # React components
 │   │   ├── Card.tsx     # Individual card component
 │   │   ├── Hand.tsx     # Hand display component
-│   │   ├── Controls.tsx # Game controls (Hit, Stand, Double)
-│   │   └── GameBoard.tsx # Main game board
+│   │   ├── Controls.tsx # Single-player controls
+│   │   ├── GameBoard.tsx # Single-player game board
+│   │   ├── PlayerJoin.tsx # Player join/login screen
+│   │   ├── MultiplayerGameBoard.tsx # Multiplayer game board
+│   │   └── MultiplayerControls.tsx # Multiplayer controls
 │   ├── store/
-│   │   └── gameStore.ts # Zustand game state store
+│   │   ├── gameStore.ts # Single-player Zustand store
+│   │   └── multiplayerStore.ts # Multiplayer Zustand store
 │   ├── utils/
 │   │   ├── deck.ts      # Deck creation and shuffling
 │   │   └── scoring.ts   # Hand value calculation and game logic
@@ -63,23 +73,60 @@ xidach-game/
 
 ### Prerequisites
 
-- Node.js 18+ and pnpm (or npm/yarn)
+- Node.js 18+ and npm (or yarn/pnpm)
 
 ### Installation
 
 1. Install dependencies:
 ```bash
-pnpm install
+npm install
 ```
 
-### Running the Game
+### Running the Multiplayer Game
 
-Start the development server:
+The game requires both a backend server and frontend to run:
+
+**Option 1: Run both together (recommended)**
 ```bash
-pnpm dev
+npm run dev:all
 ```
 
-The game will be available at `http://localhost:5173` (or the port Vite assigns).
+This will start:
+- Backend server on `http://localhost:3001`
+- Frontend on `http://localhost:5173`
+
+**Option 2: Run separately**
+
+Terminal 1 - Backend server:
+```bash
+npm run dev:server
+```
+
+Terminal 2 - Frontend:
+```bash
+npm run dev
+```
+
+### Configuration
+
+The frontend connects to the backend server. By default, it connects to `http://localhost:3001`.
+
+To change the server URL, create a `.env` file:
+```env
+VITE_SOCKET_URL=http://localhost:3001
+```
+
+### Playing Multiplayer
+
+1. Open the game in your browser: `http://localhost:5173`
+2. Enter your name and click "JOIN GAME"
+3. Up to 3 players can join from different browsers/devices
+4. Once players have joined, any player can click "DEAL CARDS"
+5. Players take turns in order (Player 1, Player 2, Player 3, then Dealer)
+6. Each player can Hit, Stand, or Double (on first turn only)
+7. After all players finish, the dealer plays automatically
+8. Results are shown for each player
+9. Click "NEW GAME" to start another round
 
 ### Building for Production
 
@@ -93,24 +140,37 @@ Preview the production build:
 pnpm preview
 ```
 
-## How to Play
+## How to Play (Multiplayer)
 
-1. Click **"DEAL CARDS"** to start a new hand
-2. You'll receive 2 cards, and the dealer receives 2 cards (one hidden)
-3. Choose your action:
+1. **Join the game**: Enter your name and click "JOIN GAME"
+2. **Wait for players**: Up to 3 players can join (minimum 1 player needed)
+3. **Deal cards**: Once players are ready, any player can click "DEAL CARDS"
+4. **Take your turn**: When it's your turn, you'll see "(YOUR TURN)" next to your name
+5. **Choose your action**:
    - **HIT** - Draw another card
-   - **STAND** - End your turn (dealer will play)
-   - **DOUBLE** - Double your bet and take exactly one more card (only available on first turn)
-4. The dealer will automatically play after you stand
-5. The game will show the result: Win, Lose, Push, Blackjack, or Bust
-6. Click **"NEW GAME"** to start another round
+   - **STAND** - End your turn (next player's turn)
+   - **DOUBLE** - Double your bet and take exactly one more card (only available on first turn with 2 cards)
+6. **Wait for others**: Watch other players take their turns
+7. **Dealer plays**: After all players finish, the dealer plays automatically
+8. **See results**: Each player's result is shown (Win, Lose, Push, Blackjack, or Bust)
+9. **New game**: Click "NEW GAME" to start another round
 
 ## Game States
 
-- **Waiting** - Ready to deal cards
-- **Player Turn** - Player can make decisions
+- **Waiting** - Waiting for players to join and ready to deal cards
+- **Dealing** - Cards are being dealt to all players
+- **Playing** - Players are taking turns
 - **Dealer Turn** - Dealer is playing (automatic)
-- **Finished** - Game over, showing results
+- **Finished** - Game over, showing results for all players
+
+## Multiplayer Features
+
+- **Real-time synchronization**: All players see the same game state
+- **Turn-based gameplay**: Players take turns in order
+- **Player identification**: Each player has a unique name and ID
+- **Connection handling**: Players can join/leave at any time
+- **Error handling**: Clear error messages for invalid actions
+- **Cross-browser**: Works across different browsers and devices
 
 ## Styling
 
