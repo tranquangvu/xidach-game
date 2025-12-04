@@ -12,6 +12,8 @@ interface HandProps {
   isFinished?: boolean;
   result?: string | null;
   isWaiting?: boolean;
+  balance?: number;
+  bet?: number;
 }
 
 export const Hand = ({
@@ -24,7 +26,9 @@ export const Hand = ({
   isMyHand = false,
   isFinished = false,
   result = null,
-  isWaiting = false
+  isWaiting = false,
+  balance,
+  bet
 }: HandProps) => {
   const displayScore = isDealer && hideFirstCard ? '?' : score;
   const isBust = score > 21;
@@ -58,6 +62,16 @@ export const Hand = ({
           {isCurrentPlayer && !isWaiting && <span className="ml-2 text-xs">(YOUR TURN)</span>}
           {isFinished && isMyHand && !isCurrentPlayer && <span className="ml-2 text-xs">(YOU)</span>}
         </h2>
+        {!isDealer && balance !== undefined && (
+          <div className="text-xs md:text-sm font-pixel text-gray-400">
+            Balance: <span className="text-neon-green">${balance}</span>
+            {bet !== undefined && bet > 0 && (
+              <span className="ml-4">
+                (Bet: <span className="text-yellow-400">${bet}</span>)
+              </span>
+            )}
+          </div>
+        )}
         {showScoreAndCards && (
           <div className="text-sm md:text-base xl:text-sm font-pixel text-center">
             Score: <span className={isBust ? 'text-red-500' : isBlackjack ? 'text-yellow-400' : 'text-white'}>

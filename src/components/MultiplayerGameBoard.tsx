@@ -20,7 +20,7 @@ export const MultiplayerGameBoard = () => {
       <div className={`max-w-7xl mx-auto w-full ${isWaiting ? 'flex flex-col flex-1 justify-center' : ''}`}>
         {/* Compact Header */}
         <div className={`text-center ${isWaiting ? 'mb-4 md:mb-6' : 'mb-3 md:mb-4'}`}>
-          <h1 className="text-2xl md:text-4xl font-pixel text-neon-green glow mb-1">
+          <h1 className="text-2xl md:text-4xl font-pixel text-neon-green glow mb-4">
             XÌ DÁCH
           </h1>
           <div className="flex items-center justify-center gap-3 text-xs md:text-sm text-gray-500 font-pixel">
@@ -52,7 +52,7 @@ export const MultiplayerGameBoard = () => {
 
         {/* Game Status - Compact */}
         {gameState.gameStatus === 'waiting' && (
-          <div className="text-center mb-4 md:mb-6">
+          <div className="text-center mb-4 md:mb-12">
             <p className="text-sm md:text-lg font-pixel text-yellow-400">
               Waiting for players... ({gameState.players.length}/3)
             </p>
@@ -83,8 +83,8 @@ export const MultiplayerGameBoard = () => {
           </div>
         )}
 
-        {/* Players - Grid layout: vertical on waiting, 1 column on small / 3 columns on xl during game */}
-        <div className={`grid ${isWaiting ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3'} gap-3 md:gap-4 xl:gap-6 ${isWaiting ? '' : 'mb-20'}`}>
+        {/* Players - Grid layout: 1 column on small / 3 columns on xl */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 md:gap-4 xl:gap-6">
           {gameState.players.map((player) => {
             const isMyHand = player.id === playerId;
             const isFinished = gameState.gameStatus === 'finished';
@@ -100,6 +100,8 @@ export const MultiplayerGameBoard = () => {
                   isFinished={isFinished}
                   result={player.result}
                   isWaiting={isWaiting}
+                  balance={player.balance}
+                  bet={player.bet}
                 />
               </div>
             );

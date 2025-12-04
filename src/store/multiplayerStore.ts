@@ -14,6 +14,7 @@ interface MultiplayerStore {
   connect: (playerName: string) => void;
   disconnect: () => void;
   joinGame: (playerName: string) => void;
+  placeBet: (betAmount: number) => void;
   dealCards: () => void;
   playerHit: () => void;
   playerStand: () => void;
@@ -91,6 +92,15 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
     if (socket && socket.connected) {
       socket.emit('joinGame', { playerName });
       set({ playerName });
+    } else {
+      set({ error: 'Not connected to server' });
+    }
+  },
+
+  placeBet: (betAmount: number) => {
+    const { socket } = get();
+    if (socket && socket.connected) {
+      socket.emit('placeBet', { betAmount });
     } else {
       set({ error: 'Not connected to server' });
     }

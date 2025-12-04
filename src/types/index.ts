@@ -19,6 +19,9 @@ export interface Player {
   status: PlayerStatus;
   result: GameResult;
   isCurrentPlayer?: boolean;
+  balance: number;
+  bet: number;
+  hasPlacedBet?: boolean;
 }
 
 export interface GameState {

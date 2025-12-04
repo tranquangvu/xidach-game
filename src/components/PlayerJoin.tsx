@@ -24,7 +24,7 @@ export const PlayerJoin = () => {
     <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-5xl font-pixel text-neon-green glow mb-2">
+          <h1 className="text-3xl md:text-5xl font-pixel text-neon-green glow mb-4">
             XÌ DÁCH
           </h1>
           <p className="text-sm md:text-base text-gray-400 font-pixel mb-4">

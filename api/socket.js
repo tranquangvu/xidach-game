@@ -160,20 +160,33 @@ function dealerPlay() {
 
     if (playerBust) {
       player.result = 'bust';
+      // Player loses bet (already deducted)
     } else if (playerBJ && !dealerBJ) {
       player.result = 'blackjack';
+      // Blackjack pays 3:2 (1.5x bet)
+      player.balance += Math.floor(player.bet * 2.5);
     } else if (dealerBust) {
       player.result = 'win';
+      // Win pays 1:1 (2x bet)
+      player.balance += player.bet * 2;
     } else if (dealerBJ && !playerBJ) {
       player.result = 'lose';
+      // Player loses bet (already deducted)
     } else if (playerBJ && dealerBJ) {
       player.result = 'push';
+      // Push returns bet
+      player.balance += player.bet;
     } else if (playerValue > dealerValue) {
       player.result = 'win';
+      // Win pays 1:1 (2x bet)
+      player.balance += player.bet * 2;
     } else if (playerValue < dealerValue) {
       player.result = 'lose';
+      // Player loses bet (already deducted)
     } else {
       player.result = 'push';
+      // Push returns bet
+      player.balance += player.bet;
     }
     player.status = 'finished';
   });
@@ -199,6 +212,9 @@ function broadcastGameState(disconnectMessage = null) {
       status: p.status,
       result: p.result,
       isCurrentPlayer: p.id === getCurrentPlayer()?.id,
+      balance: p.balance,
+      bet: p.bet,
+      hasPlacedBet: p.hasPlacedBet,
     })),
     gameStatus: gameState.gameStatus,
     currentPlayerIndex: gameState.currentPlayerIndex,
@@ -242,12 +258,44 @@ function setupSocketIO(server) {
         score: 0,
         status: 'waiting',
         result: null,
+        balance: 1000, // Starting balance
+        bet: 0,
+        hasPlacedBet: false,
       };
 
       gameState.players.set(socket.id, player);
       console.log(`Player ${player.name} joined. Total players: ${gameState.players.size}`);
 
       socket.emit('joined', { playerId: socket.id, playerName: player.name });
+      broadcastGameState();
+    });
+
+    socket.on('placeBet', ({ betAmount }) => {
+      const player = gameState.players.get(socket.id);
+      if (!player) {
+        socket.emit('error', { message: 'You are not in the game.' });
+        return;
+      }
+
+      if (gameState.gameStatus !== 'waiting') {
+        socket.emit('error', { message: 'Cannot place bet. Game is in progress.' });
+        return;
+      }
+
+      const bet = parseInt(betAmount);
+      if (isNaN(bet) || bet < 5 || bet > 20) {
+        socket.emit('error', { message: 'Bet must be between $5 and $20.' });
+        return;
+      }
+
+      if (bet > player.balance) {
+        socket.emit('error', { message: 'Insufficient balance.' });
+        return;
+      }
+
+      player.bet = bet;
+      player.hasPlacedBet = true;
+      player.balance -= bet;
       broadcastGameState();
     });
 
@@ -260,6 +308,13 @@ function setupSocketIO(server) {
       const players = getPlayerArray();
       if (players.length !== gameState.maxPlayers) {
         socket.emit('error', { message: `Need exactly ${gameState.maxPlayers} players to start. Currently ${players.length} player(s).` });
+        return;
+      }
+
+      // Check if all players have placed bets
+      const allPlayersBetted = players.every((p) => p.hasPlacedBet && p.bet >= 5);
+      if (!allPlayersBetted) {
+        socket.emit('error', { message: 'All players must place a bet before dealing cards.' });
         return;
       }
 
@@ -373,6 +428,15 @@ function setupSocketIO(server) {
         return;
       }
 
+      // Double the bet
+      if (player.bet * 2 > player.balance) {
+        socket.emit('error', { message: 'Insufficient balance to double.' });
+        return;
+      }
+
+      player.balance -= player.bet; // Deduct additional bet
+      player.bet *= 2; // Double the bet
+
       checkAndReshuffle();
       const { card, remainingDeck } = drawCard(gameState.deck);
       player.hand.push(card);
@@ -399,9 +463,13 @@ function setupSocketIO(server) {
         player.score = 0;
         player.status = 'waiting';
         player.result = null;
+        player.bet = 0;
+        player.hasPlacedBet = false;
       });
 
-      if (players.length === gameState.maxPlayers) {
+      // Check if all players have placed bets before auto-dealing
+      const allPlayersBetted = players.every((p) => p.hasPlacedBet && p.bet >= 5);
+      if (players.length === gameState.maxPlayers && allPlayersBetted) {
         gameState.deck = createMultipleDecks(1);
         gameState.dealerHand = [];
         gameState.currentPlayerIndex = 0;
