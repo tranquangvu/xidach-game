@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-white font-pixel;
+    font-size: 12px;
+  }
+}
+
+@layer utilities {
+  .card-animation {
+    animation: cardDeal 0.5s ease-out;
+  }
+
+  @keyframes cardDeal {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .glow {
+    text-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14, 0 0 30px #39ff14;
+  }
+}
