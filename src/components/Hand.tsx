@@ -1,6 +1,5 @@
 import { Card as CardType } from '../types';
 import { Card } from './Card';
-import { calculateHandValue } from '../utils/scoring';
 
 interface HandProps {
   cards: CardType[];

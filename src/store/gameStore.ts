@@ -162,7 +162,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     const dealerValue = calculateHandValue(currentDealerHand);
-    const playerValue = calculateHandValue(playerHand);
     const dealerBust = isBust(currentDealerHand);
     const playerBust = isBust(playerHand);
 
