@@ -251,9 +251,23 @@ function setupSocketIO(server) {
         return;
       }
 
+      // Check for unique player name (case-insensitive)
+      const trimmedName = playerName ? playerName.trim() : '';
+      if (trimmedName) {
+        const nameExists = players.some(
+          (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
+        );
+        if (nameExists) {
+          socket.emit('error', { message: 'This name is already taken. Please choose a different name.' });
+          return;
+        }
+      }
+
+      const finalName = trimmedName || `Player ${players.length + 1}`;
+
       const player = {
         id: socket.id,
-        name: playerName || `Player ${players.length + 1}`,
+        name: finalName,
         hand: [],
         score: 0,
         status: 'waiting',
@@ -519,8 +533,14 @@ function setupSocketIO(server) {
     socket.on('disconnect', () => {
       console.log('Player disconnected:', socket.id);
       const disconnectedPlayer = gameState.players.get(socket.id);
-      const disconnectedPlayerName = disconnectedPlayer ? disconnectedPlayer.name : 'A player';
 
+      // Only process disconnect if the player was actually in the game
+      if (!disconnectedPlayer) {
+        console.log('Disconnected player was not in the game, ignoring.');
+        return;
+      }
+
+      const disconnectedPlayerName = disconnectedPlayer.name;
       const gameInProgress = gameState.gameStatus !== 'waiting' && gameState.gameStatus !== 'finished';
 
       gameState.players.delete(socket.id);
@@ -533,12 +553,18 @@ function setupSocketIO(server) {
           if (!player.result) {
             player.result = null;
           }
+          // Return bet money to all remaining players
+          if (player.bet > 0) {
+            player.balance += player.bet;
+            player.bet = 0;
+            player.hasPlacedBet = false;
+          }
         });
 
         gameState.gameStatus = 'finished';
         gameState.currentPlayerIndex = 0;
 
-        broadcastGameState(`${disconnectedPlayerName} disconnected. Game ended.`);
+        broadcastGameState(`${disconnectedPlayerName} disconnected. Game ended. All bets have been returned.`);
       } else if (gameState.players.size === 0) {
         gameState.gameStatus = 'waiting';
         gameState.deck = [];
