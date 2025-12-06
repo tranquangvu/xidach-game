@@ -27,11 +27,8 @@ interface MultiplayerStore {
 // Use relative path for Vercel deployment, or environment variable for custom server
 const SOCKET_URL =
   (typeof import.meta !== 'undefined' &&
-    // @ts-expect-error: VITE_SOCKET_URL might be defined in Vite's ImportMetaEnv
     import.meta.env && import.meta.env.VITE_SOCKET_URL)
-    // @ts-expect-error: import.meta.env.PROD might exist in Vite
     ? import.meta.env.VITE_SOCKET_URL
-    // @ts-expect-error: import.meta.env.PROD might exist in Vite
     : (import.meta.env && import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({

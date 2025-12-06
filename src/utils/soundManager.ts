@@ -11,6 +11,8 @@ class SoundManager {
   private isMusicEnabled: boolean = true;
   private musicVolume: number = 0.15;
   private soundVolume: number = 0.5;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   private musicPlaying: boolean = false;
   private musicIntervalId: number | null = null;
 
@@ -169,136 +171,6 @@ class SoundManager {
       }
     } catch (error) {
       console.warn('Error starting background music:', error);
-    }
-  }
-
-  private startMusicLoop() {
-    if (!this.isMusicEnabled || !this.audioContext || this.musicPlaying) return;
-
-    try {
-      this.musicPlaying = true;
-
-      // Casino-style music pattern - fun and rhythmic
-      // Create a looping pattern with bass, melody, and rhythm
-      const playNote = (freq: number, startTime: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.3) => {
-        if (!this.audioContext || !this.isMusicEnabled) return;
-
-        const osc = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-
-        osc.type = type;
-        osc.frequency.value = freq;
-
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(volume * this.musicVolume, startTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-
-        osc.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-
-        osc.start(startTime);
-        osc.stop(startTime + duration);
-      };
-
-      // Casino melody pattern - fun and upbeat
-      // Pattern repeats every 4 seconds
-      const patternLength = 4; // seconds
-      let currentTime = this.audioContext.currentTime;
-
-      const playPattern = () => {
-        if (!this.isMusicEnabled || !this.audioContext) return;
-
-        const t = currentTime;
-
-        // Bass line - low, rhythmic (Casino bass)
-        playNote(110, t, 0.3, 'sawtooth', 0.4); // A2
-        playNote(110, t + 0.5, 0.3, 'sawtooth', 0.4);
-        playNote(131, t + 1.0, 0.3, 'sawtooth', 0.4); // C3
-        playNote(110, t + 1.5, 0.3, 'sawtooth', 0.4);
-        playNote(147, t + 2.0, 0.3, 'sawtooth', 0.4); // D3
-        playNote(110, t + 2.5, 0.3, 'sawtooth', 0.4);
-        playNote(131, t + 3.0, 0.3, 'sawtooth', 0.4);
-        playNote(110, t + 3.5, 0.3, 'sawtooth', 0.4);
-
-        // Melody line - casino-style melody (higher notes)
-        playNote(440, t, 0.2, 'square', 0.25); // A4
-        playNote(523, t + 0.25, 0.2, 'square', 0.25); // C5
-        playNote(440, t + 0.5, 0.2, 'square', 0.25);
-        playNote(392, t + 0.75, 0.2, 'square', 0.25); // G4
-
-        playNote(440, t + 1.0, 0.2, 'square', 0.25);
-        playNote(523, t + 1.25, 0.2, 'square', 0.25);
-        playNote(587, t + 1.5, 0.2, 'square', 0.25); // D5
-        playNote(523, t + 1.75, 0.2, 'square', 0.25);
-
-        playNote(440, t + 2.0, 0.2, 'square', 0.25);
-        playNote(392, t + 2.25, 0.2, 'square', 0.25);
-        playNote(349, t + 2.5, 0.2, 'square', 0.25); // F4
-        playNote(392, t + 2.75, 0.2, 'square', 0.25);
-
-        playNote(440, t + 3.0, 0.2, 'square', 0.25);
-        playNote(523, t + 3.25, 0.2, 'square', 0.25);
-        playNote(440, t + 3.5, 0.2, 'square', 0.25);
-        playNote(392, t + 3.75, 0.2, 'square', 0.25);
-
-        // Harmony layer - adds richness
-        playNote(330, t, 0.4, 'sine', 0.15); // E4
-        playNote(330, t + 1.0, 0.4, 'sine', 0.15);
-        playNote(294, t + 2.0, 0.4, 'sine', 0.15); // D4
-        playNote(330, t + 3.0, 0.4, 'sine', 0.15);
-
-        // Percussive elements - casino rhythm
-        const playPercussion = (time: number) => {
-          if (!this.audioContext) return;
-          const noise = this.audioContext.createOscillator();
-          const noiseGain = this.audioContext.createGain();
-          const filter = this.audioContext.createBiquadFilter();
-
-          noise.type = 'square';
-          noise.frequency.value = 200;
-          filter.type = 'highpass';
-          filter.frequency.value = 1000;
-
-          noiseGain.gain.setValueAtTime(0.1 * this.musicVolume, time);
-          noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
-
-          noise.connect(filter);
-          filter.connect(noiseGain);
-          noiseGain.connect(this.audioContext.destination);
-
-          noise.start(time);
-          noise.stop(time + 0.1);
-        };
-
-        // Add percussive hits on the beat
-        playPercussion(t);
-        playPercussion(t + 1.0);
-        playPercussion(t + 2.0);
-        playPercussion(t + 3.0);
-
-        currentTime += patternLength;
-      };
-
-      // Play initial pattern
-      playPattern();
-
-      // Schedule repeating pattern
-      const interval = setInterval(() => {
-        if (!this.isMusicEnabled || !this.audioContext) {
-          clearInterval(interval);
-          return;
-        }
-        playPattern();
-      }, patternLength * 1000);
-
-      this.musicIntervalId = interval as any;
-
-      // Store a dummy reference for cleanup
-      this.backgroundMusicSource = null;
-      this.backgroundMusicGain = null;
-    } catch (error) {
-      console.warn('Error starting music loop:', error);
-      this.musicPlaying = false;
     }
   }
 

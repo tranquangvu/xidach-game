@@ -584,12 +584,34 @@ function setupSocketIO(server) {
   return io;
 }
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Run Express server
 const app = express();
 app.use(cors());
 
 const httpServer = createServer(app);
 setupSocketIO(httpServer);
+
+// Serve static files from the Vite build in production
+// IMPORTANT: This must come AFTER Socket.io setup to avoid intercepting /api/socket
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+
+  // Serve index.html for all routes (SPA fallback)
+  // Exclude /api routes to avoid interfering with Socket.io
+  app.get('*', (req, res, next) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
