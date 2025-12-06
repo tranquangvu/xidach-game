@@ -600,7 +600,7 @@ setupSocketIO(httpServer);
 // Serve static files from the Vite build in production
 // IMPORTANT: This must come AFTER Socket.io setup to avoid intercepting /api/socket
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
+  app.use(express.static(path.join(__dirname, './dist')));
 
   // Serve index.html for all routes (SPA fallback)
   // Exclude /api routes to avoid interfering with Socket.io
@@ -609,7 +609,7 @@ if (process.env.NODE_ENV === 'production') {
     if (req.path.startsWith('/api')) {
       return next();
     }
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    res.sendFile(path.join(__dirname, './dist/index.html'));
   });
 }
 
