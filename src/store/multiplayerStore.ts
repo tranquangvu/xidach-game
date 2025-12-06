@@ -11,7 +11,7 @@ interface MultiplayerStore {
   error: string | null;
 
   // Actions
-  connect: (playerName: string) => void;
+  connect: (playerName: string) => Promise<void>;
   disconnect: () => void;
   joinGame: (playerName: string) => void;
   placeBet: (betAmount: number) => void;
@@ -40,40 +40,50 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
   error: null,
 
   connect: (playerName: string) => {
-    // Fix: Always use SOCKET_URL. The logic is already handled in SOCKET_URL definition.
-    const socketUrl = SOCKET_URL || window.location.origin;
+    return new Promise<void>((resolve, reject) => {
+      // Fix: Always use SOCKET_URL. The logic is already handled in SOCKET_URL definition.
+      const socketUrl = SOCKET_URL || window.location.origin;
 
-    const socket = io(socketUrl, {
-      path: '/api/socket',
-      transports: ['websocket', 'polling'],
+      const socket = io(socketUrl, {
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+      });
+
+      socket.on('connect', () => {
+        console.log('Connected to server');
+        set({ isConnected: true, error: null });
+        resolve();
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+        set({ isConnected: false });
+      });
+
+      socket.on('error', (data: { message: string }) => {
+        console.error('Socket error:', data.message);
+        set({ error: data.message });
+        reject(new Error(data.message));
+      });
+
+      socket.on('connect_error', (error: Error) => {
+        console.error('Connection error:', error);
+        set({ error: error.message });
+        reject(error);
+      });
+
+      socket.on('joined', (data: { playerId: string; playerName: string }) => {
+        console.log('Joined game:', data);
+        set({ playerId: data.playerId, playerName: data.playerName });
+      });
+
+      socket.on('gameState', (state: GameState) => {
+        console.log('Game state updated:', state);
+        set({ gameState: state, error: null });
+      });
+
+      set({ socket, playerName });
     });
-
-    socket.on('connect', () => {
-      console.log('Connected to server');
-      set({ isConnected: true, error: null });
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
-      set({ isConnected: false });
-    });
-
-    socket.on('error', (data: { message: string }) => {
-      console.error('Socket error:', data.message);
-      set({ error: data.message });
-    });
-
-    socket.on('joined', (data: { playerId: string; playerName: string }) => {
-      console.log('Joined game:', data);
-      set({ playerId: data.playerId, playerName: data.playerName });
-    });
-
-    socket.on('gameState', (state: GameState) => {
-      console.log('Game state updated:', state);
-      set({ gameState: state, error: null });
-    });
-
-    set({ socket, playerName });
   },
 
   disconnect: () => {

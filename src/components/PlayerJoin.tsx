@@ -5,16 +5,18 @@ export const PlayerJoin = () => {
   const [name, setName] = useState('');
   const { connect, joinGame, isConnected, error } = useMultiplayerStore();
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!name.trim()) {
       return;
     }
     if (!isConnected) {
-      connect(name);
-      // Join game after connection is established
-      setTimeout(() => {
+      try {
+        await connect(name);
         joinGame(name);
-      }, 500);
+      } catch (error) {
+        // Error is already set in the store, so we don't need to handle it here
+        console.error('Failed to connect:', error);
+      }
     } else {
       joinGame(name);
     }
