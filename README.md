@@ -41,7 +41,7 @@ A modern, retro-styled multiplayer Blackjack (Xì Dách) game built with React, 
 ```
 xidach-game/
 ├── api/
-│   └── socket.js        # Socket.io server (works for both local dev & Vercel)
+│   └── socket.js        # Socket.io server (Express server)
 ├── src/
 │   ├── components/       # React components
 │   │   ├── Card.tsx     # Individual card component
@@ -63,13 +63,10 @@ xidach-game/
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
-├── vercel.json          # Vercel deployment configuration
 └── tailwind.config.js
 ```
 
-**Note**: The `api/socket.js` file automatically detects the environment:
-- **Local**: Runs as Express server on port 3001
-- **Vercel**: Runs as serverless function
+**Note**: The `api/socket.js` file runs as an Express server on port 3001.
 
 ## Getting Started
 
@@ -172,66 +169,11 @@ The game uses a retro arcade aesthetic:
 - Card drop shadows
 - Smooth animations on card dealing
 
-## Deployment to Vercel
-
-This project is configured to deploy both the frontend and Socket.io server to Vercel.
-
-### Important Notes
-
-⚠️ **Socket.io on Vercel Limitations:**
-- Vercel serverless functions have execution time limits
-- Socket.io connections may reset on function cold starts
-- For production with many concurrent users, consider using a dedicated Socket.io service (Railway, Render, etc.)
-
-### Deployment Steps
-
-1. **Install Vercel CLI** (if not already installed):
-```bash
-pnpm add -g vercel
-```
-
-2. **Deploy to Vercel**:
-```bash
-vercel
-```
-
-Or deploy to production:
-```bash
-vercel --prod
-```
-
-3. **Environment Variables** (Optional):
-If you need to use a custom Socket.io server URL, set:
-```
-VITE_SOCKET_URL=https://your-custom-server.com
-```
-
-### How It Works
-
-1. **Frontend**: Built with Vite and served as static files
-2. **Socket.io Server**: Runs as a Vercel serverless function at `/api/socket`
-3. **Client Connection**: Automatically connects to `/api/socket` in production
-
-### Alternative: Separate Socket.io Server
-
-If you need more reliable Socket.io connections, you can:
-
-1. Deploy the Socket.io server separately (Railway, Render, Heroku, etc.)
-2. Set `VITE_SOCKET_URL` environment variable in Vercel to point to your server
-3. The frontend will automatically use that URL
-
-Example with Railway:
-```bash
-# Deploy server to Railway
-# Get the URL: https://your-app.railway.app
-# Set in Vercel: VITE_SOCKET_URL=https://your-app.railway.app
-```
-
 ### Troubleshooting
 
 - **Socket.io not connecting**: Check browser console for connection errors
 - **CORS issues**: The server is configured to allow all origins (`*`)
-- **Cold starts**: First connection may be slow due to serverless function cold start
+- **Connection refused**: Ensure the Socket.io server is running and accessible
 
 ## License
 

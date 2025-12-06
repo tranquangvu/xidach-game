@@ -7,7 +7,7 @@ import cors from 'cors';
 const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'];
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
-// Game state - stored in memory (will reset on serverless function restart)
+// Game state - stored in memory
 let gameState = {
   deck: [],
   dealerHand: [],
@@ -584,35 +584,16 @@ function setupSocketIO(server) {
   return io;
 }
 
-// Vercel serverless function handler
-export default function handler(req, res) {
-  // Check if Socket.io is already initialized
-  if (!res.socket.server.io) {
-    const httpServer = createServer();
-    setupSocketIO(httpServer);
-    httpServer.listen(0); // Let Vercel assign port
-    res.socket.server.io = io;
-  } else {
-    io = res.socket.server.io;
-  }
-  res.end();
-}
+// Run Express server
+const app = express();
+app.use(cors());
 
-// Local development - run Express server if file is executed directly
-// Check if this file is being run directly (not imported by Vercel)
-const isMainModule = process.argv[1] && process.argv[1].endsWith('api/socket.js');
+const httpServer = createServer(app);
+setupSocketIO(httpServer);
 
-if (isMainModule) {
-  const app = express();
-  app.use(cors());
-
-  const httpServer = createServer(app);
-  setupSocketIO(httpServer);
-
-  const PORT = process.env.PORT || 3001;
-  httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Socket.io server ready for connections`);
-    console.log(`Connect to: http://localhost:${PORT}/api/socket`);
-  });
-}
+const PORT = process.env.PORT || 3001;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Socket.io server ready for connections`);
+  console.log(`Connect to: http://localhost:${PORT}/api/socket`);
+});

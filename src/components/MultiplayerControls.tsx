@@ -1,5 +1,6 @@
 import { useMultiplayerStore } from '../store/multiplayerStore';
 import { BettingControls } from './BettingControls';
+import { soundManager } from '../utils/soundManager';
 
 export const MultiplayerControls = () => {
   const {
@@ -37,8 +38,11 @@ export const MultiplayerControls = () => {
 
       {canDeal && (
         <button
-          onClick={dealCards}
-          className="px-6 md:px-8 py-2 md:py-3 bg-neon-green text-dark-bg font-pixel text-sm md:text-base rounded-lg border-4 border-white shadow-neon hover:scale-105 transition-transform cursor-pointer w-full max-w-xs"
+          onClick={() => {
+            soundManager.playCardDeal();
+            dealCards();
+          }}
+          className="px-6 md:px-8 py-2 md:py-3 bg-neon-green text-dark-bg font-pixel text-sm md:text-base rounded-xl border-4 border-white shadow-neon hover:scale-105 transition-transform cursor-pointer w-full max-w-xs"
         >
           DEAL CARDS
         </button>
@@ -47,21 +51,30 @@ export const MultiplayerControls = () => {
       {myTurn && (
         <div className="flex flex-wrap gap-2 md:gap-3 justify-center w-full">
           <button
-            onClick={playerHit}
-            className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-pixel text-xs md:text-sm rounded-lg border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
+            onClick={() => {
+              soundManager.playCardHit();
+              playerHit();
+            }}
+            className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white font-pixel text-xs md:text-sm rounded-xl border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
           >
             HIT
           </button>
           <button
-            onClick={playerStand}
-            className="px-4 md:px-6 py-2 md:py-3 bg-red-600 text-white font-pixel text-xs md:text-sm rounded-lg border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
+            onClick={() => {
+              soundManager.playStand();
+              playerStand();
+            }}
+            className="px-4 md:px-6 py-2 md:py-3 bg-red-600 text-white font-pixel text-xs md:text-sm rounded-xl border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
           >
             STAND
           </button>
           {canDouble && (
             <button
-              onClick={playerDouble}
-              className="px-4 md:px-6 py-2 md:py-3 bg-yellow-600 text-white font-pixel text-xs md:text-sm rounded-lg border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
+              onClick={() => {
+                soundManager.playDouble();
+                playerDouble();
+              }}
+              className="px-4 md:px-6 py-2 md:py-3 bg-yellow-600 text-white font-pixel text-xs md:text-sm rounded-xl border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
             >
               DOUBLE
             </button>
@@ -80,7 +93,7 @@ export const MultiplayerControls = () => {
       {gameEnded && (
         <button
           onClick={newGame}
-          className="px-6 md:px-8 py-2 md:py-3 bg-neon-green text-dark-bg font-pixel text-sm md:text-base rounded-lg border-4 border-white shadow-neon hover:scale-105 transition-transform cursor-pointer w-full max-w-xs"
+          className="px-6 md:px-8 py-2 md:py-3 bg-neon-green text-dark-bg font-pixel text-sm md:text-base rounded-xl border-4 border-white shadow-neon hover:scale-105 transition-transform cursor-pointer w-full max-w-xs"
         >
           NEW GAME
         </button>

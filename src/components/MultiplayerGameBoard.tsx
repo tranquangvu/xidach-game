@@ -1,10 +1,79 @@
+import { useEffect, useRef } from 'react';
 import { useMultiplayerStore } from '../store/multiplayerStore';
 import { Hand } from './Hand';
 import { MultiplayerControls } from './MultiplayerControls';
+import { SoundToggle } from './SoundToggle';
+import { soundManager } from '../utils/soundManager';
 
 export const MultiplayerGameBoard = () => {
   const { gameState, playerId, playerName, isConnected } = useMultiplayerStore();
+  const prevGameStateRef = useRef<typeof gameState>(null);
+  const prevPlayerHandsRef = useRef<Record<string, number>>({});
 
+  // Play sounds based on game state changes
+  // IMPORTANT: This hook must be called before any early returns to follow Rules of Hooks
+  useEffect(() => {
+    if (!gameState) return;
+
+    const prevState = prevGameStateRef.current;
+
+    // Play sound when dealing starts
+    if (prevState?.gameStatus !== 'dealing' && gameState.gameStatus === 'dealing') {
+      soundManager.playCardDeal();
+    }
+
+    // Play sound when cards are dealt (check if dealer or player hands increased)
+    if (prevState) {
+      // Check dealer hand
+      if (gameState.dealerHand.length > (prevState.dealerHand?.length || 0)) {
+        soundManager.playCardDeal();
+      }
+
+      // Check player hands
+      gameState.players.forEach((player) => {
+        const prevHandLength = prevPlayerHandsRef.current[player.id] || 0;
+        if (player.hand.length > prevHandLength) {
+          // Only play sound for current player's cards or if it's a hit
+          if (player.id === playerId && gameState.gameStatus === 'playing') {
+            soundManager.playCardHit();
+          } else if (gameState.gameStatus === 'dealing') {
+            soundManager.playCardDeal();
+          }
+        }
+        prevPlayerHandsRef.current[player.id] = player.hand.length;
+      });
+    }
+
+    // Play sounds when game finishes
+    if (prevState?.gameStatus !== 'finished' && gameState.gameStatus === 'finished') {
+      const myPlayer = gameState.players.find(p => p.id === playerId);
+      if (myPlayer) {
+        setTimeout(() => {
+          switch (myPlayer.result) {
+            case 'blackjack':
+              soundManager.playBlackjack();
+              break;
+            case 'bust':
+              soundManager.playBust();
+              break;
+            case 'win':
+              soundManager.playWin();
+              break;
+            case 'lose':
+              soundManager.playLose();
+              break;
+            default:
+              // Push or other - play a neutral sound
+              break;
+          }
+        }, 300);
+      }
+    }
+
+    prevGameStateRef.current = gameState;
+  }, [gameState, playerId]);
+
+  // Early return AFTER all hooks
   if (!isConnected || !gameState) {
     return null;
   }
@@ -26,7 +95,7 @@ export const MultiplayerGameBoard = () => {
           <div className="flex items-center justify-center gap-3 text-xs md:text-sm text-gray-500 font-pixel">
             {!isWaiting && gameState.deck.length > 0 && (
               <>
-                <span>Cards Remaining: {gameState.deck.length}</span>
+                <span>Cards: {gameState.deck.length}</span>
                 <span>•</span>
               </>
             )}
@@ -115,6 +184,9 @@ export const MultiplayerGameBoard = () => {
           <MultiplayerControls />
         </div>
       </div>
+
+      {/* Sound Toggle - Bottom Right */}
+      <SoundToggle />
     </div>
   );
 };
