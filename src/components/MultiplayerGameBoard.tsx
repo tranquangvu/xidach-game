@@ -90,7 +90,7 @@ export const MultiplayerGameBoard = () => {
         {/* Compact Header */}
         <div className={`text-center ${isWaiting ? 'mb-4 md:mb-6' : 'mb-3 md:mb-4'}`}>
           <h1 className="text-2xl md:text-4xl font-pixel text-neon-green glow mb-4">
-            XÌ DÁCH
+            BLACKJACK
           </h1>
           <div className="flex items-center justify-center gap-3 text-xs md:text-sm text-gray-500 font-pixel">
             {!isWaiting && gameState.deck.length > 0 && (

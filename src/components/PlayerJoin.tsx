@@ -25,10 +25,10 @@ export const PlayerJoin = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-4xl font-pixel text-neon-green glow mb-4">
-            XÌ DÁCH
+            BLACKJACK
           </h1>
           <p className="text-xs md:text-sm text-gray-400 font-pixel mb-4">
-            MULTIPLAYER BLACKJACK
+            Choi De Tro Ve
           </p>
         </div>
 
