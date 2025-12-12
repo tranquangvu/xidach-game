@@ -3,7 +3,7 @@ import { useMultiplayerStore } from '../store/multiplayerStore';
 
 export const PlayerJoin = () => {
   const [name, setName] = useState('');
-  const { connect, joinGame, isConnected, error } = useMultiplayerStore();
+  const { connect, joinGame, isConnected, error, playerId } = useMultiplayerStore();
 
   const handleJoin = async () => {
     if (!name.trim()) {
@@ -58,10 +58,10 @@ export const PlayerJoin = () => {
 
           <button
             onClick={handleJoin}
-            disabled={!name.trim() || isConnected}
+            disabled={!name.trim() || !!playerId}
             className="w-full px-6 py-2.5 bg-neon-green text-dark-bg font-pixel text-xs md:text-sm rounded-xl border-4 border-white shadow-neon hover:scale-105 transition-transform cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {isConnected ? 'CONNECTED' : 'JOIN GAME'}
+            {playerId ? 'CONNECTED' : 'JOIN GAME'}
           </button>
 
           <div className="text-center text-xs text-gray-500 font-pixel mt-6">

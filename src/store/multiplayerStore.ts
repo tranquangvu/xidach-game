@@ -98,6 +98,8 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
   joinGame: (playerName: string) => {
     const { socket } = get();
     if (socket && socket.connected) {
+      // Clear any previous error when attempting to join
+      set({ error: null });
       socket.emit('joinGame', { playerName });
       set({ playerName });
     } else {
