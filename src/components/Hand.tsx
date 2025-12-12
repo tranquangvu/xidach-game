@@ -14,6 +14,10 @@ interface HandProps {
   isWaiting?: boolean;
   balance?: number;
   bet?: number;
+  onCardSelect?: (index: number) => void;
+  selectedCardIndex?: number | null;
+  specialChancesRemaining?: number;
+  isUsingSpecialChance?: boolean;
 }
 
 export const Hand = ({
@@ -28,7 +32,11 @@ export const Hand = ({
   result = null,
   isWaiting = false,
   balance,
-  bet
+  bet,
+  onCardSelect,
+  selectedCardIndex,
+  specialChancesRemaining,
+  isUsingSpecialChance = false
 }: HandProps) => {
   const displayScore = isDealer && hideFirstCard ? '?' : score;
   const isBust = score > 21;
@@ -64,18 +72,27 @@ export const Hand = ({
         </h2>
         {!isDealer && balance !== undefined && (
           <div className="text-xs md:text-sm font-pixel text-gray-400">
-            Balance: <span className="text-neon-green">${balance}</span>
+            <span className="mr-1 md:mr-2">
+              Bal: <span className="text-neon-green">${balance}</span>
+            </span>
             {bet !== undefined && bet > 0 && (
-              <span className="ml-4">
-                (Bet: <span className="text-yellow-400">${bet}</span>)
+              <span className="ml-1 md:ml-2">
+                / Bet: <span className="text-yellow-400">${bet}</span>
+              </span>
+            )}
+            {specialChancesRemaining !== undefined && (
+              <span className="ml-1 md:ml-2">
+                / Repl: <span className="text-purple-400">{specialChancesRemaining}</span>
               </span>
             )}
           </div>
         )}
         {showScoreAndCards && (
           <div className="text-sm md:text-base xl:text-sm font-pixel text-center">
-            Score: <span className={isBust ? 'text-red-500' : isBlackjack ? 'text-yellow-400' : 'text-white'}>
-              {displayScore}
+            <span className="mr-1 md:mr-2">
+              Score: <span className={isBust ? 'text-red-500' : isBlackjack ? 'text-yellow-400' : 'text-white'}>
+                {displayScore}
+              </span>
             </span>
             {isBust && <span className="text-red-500 ml-1 md:ml-2 text-xs">BUST!</span>}
             {isBlackjack && <span className="text-yellow-400 ml-1 md:ml-2 text-xs">BLACKJACK!</span>}
@@ -92,7 +109,7 @@ export const Hand = ({
         )}
       </div>
       {showScoreAndCards && (
-        <div className="flex flex-wrap gap-1 md:gap-2 justify-center w-full">
+        <div className={`flex flex-wrap gap-1 md:gap-2 justify-center w-full ${isUsingSpecialChance ? 'special-chance-active' : ''}`}>
           {cards.length === 0 ? (
             <div className="text-gray-500 font-pixel text-xs">No cards</div>
           ) : (
@@ -102,6 +119,9 @@ export const Hand = ({
                 card={card}
                 isHidden={isDealer && hideFirstCard && index === 0}
                 index={index}
+                onClick={onCardSelect && isCurrentPlayer && !isFinished && !isDealer ? () => onCardSelect(index) : undefined}
+                isSelected={selectedCardIndex === index}
+                isReplacing={isUsingSpecialChance && selectedCardIndex === index}
               />
             ))
           )}

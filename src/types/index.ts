@@ -22,6 +22,8 @@ export interface Player {
   balance: number;
   bet: number;
   hasPlacedBet?: boolean;
+  specialChancesUsed?: number;
+  isUsingSpecialChance?: boolean;
 }
 
 export interface GameState {

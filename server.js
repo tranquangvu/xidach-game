@@ -215,6 +215,8 @@ function broadcastGameState(disconnectMessage = null) {
       balance: p.balance,
       bet: p.bet,
       hasPlacedBet: p.hasPlacedBet,
+      specialChancesUsed: p.specialChancesUsed || 0,
+      isUsingSpecialChance: p.isUsingSpecialChance || false,
     })),
     gameStatus: gameState.gameStatus,
     currentPlayerIndex: gameState.currentPlayerIndex,
@@ -275,6 +277,8 @@ function setupSocketIO(server) {
         balance: 1000, // Starting balance
         bet: 0,
         hasPlacedBet: false,
+        specialChancesUsed: 0,
+        isUsingSpecialChance: false,
       };
 
       gameState.players.set(socket.id, player);
@@ -342,6 +346,8 @@ function setupSocketIO(server) {
         player.score = 0;
         player.status = 'waiting';
         player.result = null;
+        player.specialChancesUsed = 0;
+        player.isUsingSpecialChance = false;
       });
 
       players.forEach((player) => {
@@ -465,6 +471,59 @@ function setupSocketIO(server) {
       nextPlayer();
     });
 
+    socket.on('requestSpecialChance', ({ cardIndex }) => {
+      const player = gameState.players.get(socket.id);
+      if (!player) {
+        socket.emit('error', { message: 'You are not in the game.' });
+        return;
+      }
+
+      if (gameState.gameStatus !== 'playing' || player.status !== 'playing') {
+        socket.emit('error', { message: 'It is not your turn.' });
+        return;
+      }
+
+      if (player.specialChancesUsed >= 3) {
+        socket.emit('error', { message: 'You have used all 3 special chances.' });
+        return;
+      }
+
+      if (!player.hand || player.hand.length === 0) {
+        socket.emit('error', { message: 'You have no cards to replace.' });
+        return;
+      }
+
+      if (cardIndex < 0 || cardIndex >= player.hand.length) {
+        socket.emit('error', { message: 'Invalid card index.' });
+        return;
+      }
+
+      // Mark that player is using special chance for animation
+      player.isUsingSpecialChance = true;
+      broadcastGameState();
+
+      // Small delay for animation effect
+      setTimeout(() => {
+        checkAndReshuffle();
+        const { card, remainingDeck } = drawCard(gameState.deck);
+
+        // Replace the card at the specified index
+        player.hand[cardIndex] = card;
+        gameState.deck = remainingDeck;
+        player.score = calculateHandValue(player.hand);
+        player.specialChancesUsed = (player.specialChancesUsed || 0) + 1;
+        player.isUsingSpecialChance = false;
+
+        if (isBust(player.hand)) {
+          player.status = 'finished';
+          player.result = 'bust';
+          nextPlayer();
+        } else {
+          broadcastGameState();
+        }
+      }, 600); // Delay for animation
+    });
+
     socket.on('newGame', () => {
       gameState.deck = [];
       gameState.dealerHand = [];
@@ -479,6 +538,8 @@ function setupSocketIO(server) {
         player.result = null;
         player.bet = 0;
         player.hasPlacedBet = false;
+        player.specialChancesUsed = 0;
+        player.isUsingSpecialChance = false;
       });
 
       // Check if all players have placed bets before auto-dealing

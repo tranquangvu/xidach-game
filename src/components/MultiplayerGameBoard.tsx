@@ -1,14 +1,34 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import { useMultiplayerStore } from '../store/multiplayerStore';
 import { Hand } from './Hand';
 import { MultiplayerControls } from './MultiplayerControls';
 import { SoundToggle } from './SoundToggle';
 import { soundManager } from '../utils/soundManager';
 
+// Context for card selection state
+interface CardSelectionContextType {
+  selectedCardIndex: number | null;
+  setSelectedCardIndex: (index: number | null) => void;
+  isSpecialChanceMode: boolean;
+  setIsSpecialChanceMode: (mode: boolean) => void;
+}
+
+const CardSelectionContext = createContext<CardSelectionContextType | null>(null);
+
+export const useCardSelection = () => {
+  const context = useContext(CardSelectionContext);
+  if (!context) {
+    throw new Error('useCardSelection must be used within MultiplayerGameBoard');
+  }
+  return context;
+};
+
 export const MultiplayerGameBoard = () => {
   const { gameState, playerId, playerName, isConnected } = useMultiplayerStore();
   const prevGameStateRef = useRef<typeof gameState>(null);
   const prevPlayerHandsRef = useRef<Record<string, number>>({});
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
+  const [isSpecialChanceMode, setIsSpecialChanceMode] = useState(false);
 
   // Play sounds based on game state changes
   // IMPORTANT: This hook must be called before any early returns to follow Rules of Hooks
@@ -84,9 +104,17 @@ export const MultiplayerGameBoard = () => {
 
   const isWaiting = gameState.gameStatus === 'waiting';
 
+  const cardSelectionValue = {
+    selectedCardIndex,
+    setSelectedCardIndex,
+    isSpecialChanceMode,
+    setIsSpecialChanceMode,
+  };
+
   return (
+    <CardSelectionContext.Provider value={cardSelectionValue}>
     <div className={`min-h-screen bg-dark-bg p-2 md:p-4 pb-24 md:pb-28 ${isWaiting ? 'flex flex-col' : ''}`}>
-      <div className={`max-w-7xl mx-auto w-full ${isWaiting ? 'flex flex-col flex-1 justify-center' : ''}`}>
+      <div className={`mx-auto w-full ${isWaiting ? 'flex flex-col flex-1 justify-center' : ''}`}>
         {/* Compact Header */}
         <div className={`text-center ${isWaiting ? 'mb-4 md:mb-6' : 'mb-3 md:mb-4'}`}>
           <h1 className="text-2xl md:text-4xl font-pixel text-neon-green glow mb-4">
@@ -157,6 +185,7 @@ export const MultiplayerGameBoard = () => {
           {gameState.players.map((player) => {
             const isMyHand = player.id === playerId;
             const isFinished = gameState.gameStatus === 'finished';
+            const specialChancesRemaining = 3 - (player.specialChancesUsed || 0);
             return (
               <div key={player.id} className="w-full">
                 <Hand
@@ -171,6 +200,10 @@ export const MultiplayerGameBoard = () => {
                   isWaiting={isWaiting}
                   balance={player.balance}
                   bet={player.bet}
+                  specialChancesRemaining={specialChancesRemaining}
+                  isUsingSpecialChance={player.isUsingSpecialChance || false}
+                  onCardSelect={isMyHand && isSpecialChanceMode && player.isCurrentPlayer && !isFinished ? (index) => setSelectedCardIndex(index) : undefined}
+                  selectedCardIndex={isMyHand ? selectedCardIndex : null}
                 />
               </div>
             );
@@ -180,13 +213,12 @@ export const MultiplayerGameBoard = () => {
 
       {/* Sticky Controls at Bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-dark-bg/95 border-t-4 border-neon-green p-3 md:p-4 z-50">
-        <div className="max-w-7xl mx-auto">
-          <MultiplayerControls />
-        </div>
+        <MultiplayerControls />
       </div>
 
       {/* Sound Toggle - Bottom Right */}
       <SoundToggle />
     </div>
+    </CardSelectionContext.Provider>
   );
 };

@@ -4,6 +4,9 @@ interface CardProps {
   card: CardType;
   isHidden?: boolean;
   index?: number;
+  onClick?: () => void;
+  isSelected?: boolean;
+  isReplacing?: boolean;
 }
 
 const suitSymbols: Record<string, string> = {
@@ -20,7 +23,7 @@ const suitColors: Record<string, string> = {
   spades: 'text-black',
 };
 
-export const Card = ({ card, isHidden = false, index = 0 }: CardProps) => {
+export const Card = ({ card, isHidden = false, index = 0, onClick, isSelected = false, isReplacing = false }: CardProps) => {
   if (isHidden) {
     return (
       <div
@@ -35,10 +38,21 @@ export const Card = ({ card, isHidden = false, index = 0 }: CardProps) => {
   const suitSymbol = suitSymbols[card.suit];
   const suitColor = suitColors[card.suit];
 
+  const borderColor = isReplacing
+    ? 'border-purple-500 shadow-purple-500'
+    : isSelected
+      ? 'border-purple-400 shadow-purple-400'
+      : 'border-white';
+
+  const cardClasses = `w-16 h-24 sm:w-20 sm:h-28 md:w-24 md:h-36 bg-white rounded-lg border-4 ${borderColor} shadow-card flex flex-col items-center justify-center p-1 md:p-2 card-animation relative ${
+    onClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''
+  } ${isReplacing ? 'special-chance-replace' : ''}`;
+
   return (
     <div
-      className="w-16 h-24 sm:w-20 sm:h-28 md:w-24 md:h-36 bg-white rounded-lg border-4 border-white shadow-card flex flex-col items-center justify-center p-1 md:p-2 card-animation relative"
+      className={cardClasses}
       style={{ animationDelay: `${index * 0.1}s` }}
+      onClick={onClick}
     >
       {/* Rank in top-left */}
       <div className={`absolute top-0.5 left-0.5 md:top-1 md:left-1 text-xs sm:text-sm md:text-xl font-bold ${suitColor} font-pixel leading-tight`}>
@@ -52,6 +66,11 @@ export const Card = ({ card, isHidden = false, index = 0 }: CardProps) => {
       <div className={`text-xl sm:text-2xl md:text-5xl ${suitColor} font-bold leading-none`}>
         {suitSymbol}
       </div>
+      {isReplacing && (
+        <div className="absolute inset-0 bg-purple-500/30 rounded-lg flex items-center justify-center">
+          <div className="text-xs md:text-sm font-pixel text-purple-200 animate-pulse">REPLACING...</div>
+        </div>
+      )}
     </div>
   );
 };

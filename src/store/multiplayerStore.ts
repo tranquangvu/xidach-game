@@ -19,6 +19,7 @@ interface MultiplayerStore {
   playerHit: () => void;
   playerStand: () => void;
   playerDouble: () => void;
+  requestSpecialChance: (cardIndex: number) => void;
   newGame: () => void;
   getCurrentPlayer: () => Player | null;
   isMyTurn: () => boolean;
@@ -161,6 +162,36 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
     }
     if (socket && socket.connected) {
       socket.emit('playerDouble');
+    } else {
+      set({ error: 'Not connected to server' });
+    }
+  },
+
+  requestSpecialChance: (cardIndex: number) => {
+    const { socket, isMyTurn, getCurrentPlayer } = get();
+    if (!isMyTurn()) {
+      set({ error: 'It is not your turn' });
+      return;
+    }
+    const player = getCurrentPlayer();
+    if (!player) {
+      set({ error: 'Player not found' });
+      return;
+    }
+    if ((player.specialChancesUsed || 0) >= 3) {
+      set({ error: 'You have used all 3 special chances' });
+      return;
+    }
+    if (!player.hand || player.hand.length === 0) {
+      set({ error: 'You have no cards to replace' });
+      return;
+    }
+    if (cardIndex < 0 || cardIndex >= player.hand.length) {
+      set({ error: 'Invalid card index' });
+      return;
+    }
+    if (socket && socket.connected) {
+      socket.emit('requestSpecialChance', { cardIndex });
     } else {
       set({ error: 'Not connected to server' });
     }

@@ -28,4 +28,46 @@
   .glow {
     text-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14, 0 0 30px #39ff14;
   }
+
+  .special-chance-replace {
+    animation: specialChanceReplace 0.6s ease-in-out;
+  }
+
+  @keyframes specialChanceReplace {
+    0% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2) rotate(180deg);
+      opacity: 0.5;
+      filter: brightness(1.5) drop-shadow(0 0 20px rgba(147, 51, 234, 0.8));
+    }
+    100% {
+      transform: scale(1) rotate(360deg);
+      opacity: 1;
+      filter: brightness(1) drop-shadow(0 0 10px rgba(147, 51, 234, 0.5));
+    }
+  }
+
+  .special-chance-active {
+    animation: specialChancePulse 1s ease-in-out infinite;
+  }
+
+  @keyframes specialChancePulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 5px rgba(147, 51, 234, 0.5));
+    }
+    50% {
+      filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.8));
+    }
+  }
+
+  .shadow-purple-400 {
+    box-shadow: 0 4px 6px -1px rgba(192, 132, 252, 0.5), 0 2px 4px -1px rgba(192, 132, 252, 0.3);
+  }
+
+  .shadow-purple-500 {
+    box-shadow: 0 4px 6px -1px rgba(168, 85, 247, 0.5), 0 2px 4px -1px rgba(168, 85, 247, 0.3);
+  }
 }
