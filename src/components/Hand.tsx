@@ -61,9 +61,10 @@ export const Hand = ({
   // Hide score and cards section when waiting and no cards
   const hasCards = cards.length > 0;
   const showScoreAndCards = !isWaiting || hasCards;
+  const specialChanceGlow = isUsingSpecialChance ? 'special-chance-hand-glow' : '';
 
   return (
-    <div className={`flex flex-col items-center space-y-2 md:space-y-3 xl:space-y-3 p-2 md:p-3 xl:p-3 rounded-lg h-full ${shouldHighlight ? 'bg-green-900/30 border-2 border-neon-green' : ''}`}>
+    <div className={`flex flex-col items-center space-y-2 md:space-y-3 xl:space-y-3 p-2 md:p-3 xl:p-3 rounded-lg h-full ${shouldHighlight ? 'bg-green-900/30 border-2 border-neon-green' : ''} ${specialChanceGlow}`}>
       <div className="flex flex-col items-center space-y-1 xl:space-y-1 w-full">
         <h2 className={`text-base md:text-xl xl:text-base font-pixel ${shouldHighlight ? 'text-yellow-400 glow' : 'text-neon-green glow'}`}>
           {title}

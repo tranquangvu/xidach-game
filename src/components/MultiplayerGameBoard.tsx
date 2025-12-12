@@ -29,6 +29,7 @@ export const MultiplayerGameBoard = () => {
   const prevPlayerHandsRef = useRef<Record<string, number>>({});
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [isSpecialChanceMode, setIsSpecialChanceMode] = useState(false);
+  const [showSpecialChanceNotification, setShowSpecialChanceNotification] = useState<Record<string, boolean>>({});
 
   // Play sounds based on game state changes
   // IMPORTANT: This hook must be called before any early returns to follow Rules of Hooks
@@ -88,6 +89,31 @@ export const MultiplayerGameBoard = () => {
           }
         }, 300);
       }
+    }
+
+    // Detect when a player uses special chance and show notification
+    if (prevState) {
+      gameState.players.forEach((player) => {
+        const prevPlayer = prevState.players.find(p => p.id === player.id);
+        if (prevPlayer) {
+          const prevWasUsing = prevPlayer.isUsingSpecialChance || false;
+          const currentlyUsing = player.isUsingSpecialChance || false;
+
+          // If it went from true to false, that means the replacement just completed
+          if (prevWasUsing && !currentlyUsing) {
+            // Show notification for this player
+            setShowSpecialChanceNotification(prev => ({ ...prev, [player.id]: true }));
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+              setShowSpecialChanceNotification(prev => {
+                const newState = { ...prev };
+                delete newState[player.id];
+                return newState;
+              });
+            }, 3000);
+          }
+        }
+      });
     }
 
     prevGameStateRef.current = gameState;
@@ -186,8 +212,32 @@ export const MultiplayerGameBoard = () => {
             const isMyHand = player.id === playerId;
             const isFinished = gameState.gameStatus === 'finished';
             const specialChancesRemaining = 3 - (player.specialChancesUsed || 0);
+            // Check if we should show the special chance notification for this player
+            const shouldShowNotification = showSpecialChanceNotification[player.id] || false;
+            // Check if this player just completed using special chance (for effects)
+            const prevState = prevGameStateRef.current;
+            const prevPlayer = prevState?.players.find(p => p.id === player.id);
+            const wasUsingSpecialChance = prevPlayer?.isUsingSpecialChance || false;
+            const currentlyUsingSpecialChance = player.isUsingSpecialChance || false;
+            const justUsedSpecialChance = wasUsingSpecialChance && !currentlyUsingSpecialChance;
+
             return (
-              <div key={player.id} className="w-full">
+              <div key={player.id} className={`w-full relative ${justUsedSpecialChance ? 'special-chance-player-effect' : ''}`}>
+                {shouldShowNotification && (
+                  <>
+                    <div className="absolute inset-0 special-chance-ring pointer-events-none"></div>
+                    {/* Special Chance Notification - positioned above player's hand */}
+                    <div className="w-80 absolute bottom-14 left-1/2 -translate-x-1/2 z-50 special-chance-notification">
+                      <div className="relative bg-gradient-to-r from-purple-900 via-purple-700 to-purple-900 px-4 md:px-6 py-2 md:py-3 rounded-xl border-4 border-purple-400 shadow-2xl overflow-hidden special-chance-notification-glow">
+                        <div className="relative flex items-center justify-center gap-2 md:gap-3 z-10">
+                          <p className="text-sm md:text-base font-pixel text-white drop-shadow-lg">
+                            <span className="text-yellow-300 font-bold glow-yellow">REPLACE CARD</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
                 <Hand
                   cards={player.hand}
                   title={player.name}

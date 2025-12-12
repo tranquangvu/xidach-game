@@ -67,8 +67,11 @@ export const Card = ({ card, isHidden = false, index = 0, onClick, isSelected = 
         {suitSymbol}
       </div>
       {isReplacing && (
-        <div className="absolute inset-0 bg-purple-500/30 rounded-lg flex items-center justify-center">
-          <div className="text-xs md:text-sm font-pixel text-purple-200 animate-pulse">REPLACING...</div>
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/40 to-purple-700/40 rounded-lg flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-purple-400/20 animate-ping"></div>
+          <div className="relative text-xs md:text-sm font-pixel text-white font-bold drop-shadow-lg z-10">
+            REPLACING...
+          </div>
         </div>
       )}
     </div>
