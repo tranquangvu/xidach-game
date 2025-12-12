@@ -211,7 +211,7 @@ export const MultiplayerGameBoard = () => {
           {gameState.players.map((player) => {
             const isMyHand = player.id === playerId;
             const isFinished = gameState.gameStatus === 'finished';
-            const specialChancesRemaining = 3 - (player.specialChancesUsed || 0);
+            const specialChancesRemaining = 2 - (player.specialChancesUsed || 0);
             // Check if we should show the special chance notification for this player
             const shouldShowNotification = showSpecialChanceNotification[player.id] || false;
             // Check if this player just completed using special chance (for effects)

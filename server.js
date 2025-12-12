@@ -483,8 +483,8 @@ function setupSocketIO(server) {
         return;
       }
 
-      if (player.specialChancesUsed >= 3) {
-        socket.emit('error', { message: 'You have used all 3 special chances.' });
+      if (player.specialChancesUsed >= 2) {
+        socket.emit('error', { message: 'You have used all 2 special chances.' });
         return;
       }
 

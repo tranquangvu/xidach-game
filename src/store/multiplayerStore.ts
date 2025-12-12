@@ -178,8 +178,8 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
       set({ error: 'Player not found' });
       return;
     }
-    if ((player.specialChancesUsed || 0) >= 3) {
-      set({ error: 'You have used all 3 special chances' });
+    if ((player.specialChancesUsed || 0) >= 2) {
+      set({ error: 'You have used all 2 special chances' });
       return;
     }
     if (!player.hand || player.hand.length === 0) {

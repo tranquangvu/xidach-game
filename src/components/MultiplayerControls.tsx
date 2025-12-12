@@ -29,7 +29,7 @@ export const MultiplayerControls = () => {
   const canDeal = isWaiting && gameState.players.length === 3 && allPlayersBetted && !gameState.disconnectMessage;
   const myTurn = isMyTurn() && !gameState.disconnectMessage;
   const canDouble = myTurn && myPlayer && myPlayer.hand.length === 2;
-  const specialChancesRemaining = myPlayer ? 3 - (myPlayer.specialChancesUsed || 0) : 0;
+  const specialChancesRemaining = myPlayer ? 2 - (myPlayer.specialChancesUsed || 0) : 0;
   const canUseSpecialChance = myTurn && myPlayer && specialChancesRemaining > 0 && myPlayer.hand.length > 0;
 
   // Reset special chance mode when it's no longer the player's turn
