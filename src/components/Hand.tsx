@@ -123,6 +123,7 @@ export const Hand = ({
                 onClick={onCardSelect && isCurrentPlayer && !isFinished && !isDealer ? () => onCardSelect(index) : undefined}
                 isSelected={selectedCardIndex === index}
                 isReplacing={isUsingSpecialChance && selectedCardIndex === index}
+                showFaceDown={isCurrentPlayer && !isDealer && !isFinished} // Show face down cards for current player
               />
             ))
           )}

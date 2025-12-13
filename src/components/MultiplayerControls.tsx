@@ -13,6 +13,7 @@ export const MultiplayerControls = () => {
     playerStand,
     playerDouble,
     requestSpecialChance,
+    shuffleFaceDownCards,
     dealCards,
     newGame,
     error
@@ -64,6 +65,15 @@ export const MultiplayerControls = () => {
 
       {myTurn && !isSpecialChanceMode && (
         <div className="flex flex-wrap gap-2 md:gap-3 justify-center w-full">
+          <button
+            onClick={() => {
+              soundManager.playCardHit();
+              shuffleFaceDownCards();
+            }}
+            className="px-4 md:px-6 py-2 md:py-3 bg-orange-600 text-white font-pixel text-xs md:text-sm rounded-xl border-4 border-white shadow-lg hover:scale-105 transition-transform cursor-pointer flex-1 min-w-[80px] max-w-[160px]"
+          >
+            SHUFFLE
+          </button>
           <button
             onClick={() => {
               soundManager.playCardHit();

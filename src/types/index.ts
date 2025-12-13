@@ -1,10 +1,11 @@
-export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades';
-export type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
+export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades' | 'joker';
+export type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'JOKER';
 
 export interface Card {
   suit: Suit;
   rank: Rank;
   id: string;
+  isFaceDown?: boolean; // Track if card is face down
 }
 
 export type GameStatus = 'waiting' | 'dealing' | 'playing' | 'dealer-turn' | 'finished';

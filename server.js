@@ -25,9 +25,19 @@ function createDeck() {
         suit,
         rank,
         id: `${suit}-${rank}-${Math.random().toString(36).slice(2, 11)}`,
+        isFaceDown: false,
       });
     });
   });
+  // Add 4 Joker cards
+  for (let i = 0; i < 4; i++) {
+    deck.push({
+      suit: 'joker',
+      rank: 'JOKER',
+      id: `joker-${i}-${Math.random().toString(36).slice(2, 11)}`,
+      isFaceDown: false,
+    });
+  }
   return shuffleDeck(deck);
 }
 
@@ -58,12 +68,24 @@ function drawCard(deck) {
   return { card, remainingDeck };
 }
 
-function calculateHandValue(hand) {
+// Helper function to get card value (for Joker calculation)
+function getCardValue(card) {
+  if (card.rank === 'A') return 11;
+  if (['J', 'Q', 'K'].includes(card.rank)) return 10;
+  if (card.rank === 'JOKER') return null; // Joker value depends on dealer
+  return parseInt(card.rank);
+}
+
+function calculateHandValue(hand, dealerHand = null) {
   let value = 0;
   let aces = 0;
+  let jokers = [];
 
+  // First pass: collect jokers and calculate other cards
   hand.forEach((card) => {
-    if (card.rank === 'A') {
+    if (card.rank === 'JOKER') {
+      jokers.push(card);
+    } else if (card.rank === 'A') {
       aces++;
       value += 11;
     } else if (['J', 'Q', 'K'].includes(card.rank)) {
@@ -73,6 +95,32 @@ function calculateHandValue(hand) {
     }
   });
 
+  // Calculate Joker values based on dealer's face down card
+  if (jokers.length > 0 && dealerHand && dealerHand.length > 0) {
+    // Find dealer's face down card
+    const dealerFaceDownCard = dealerHand.find(c => c.isFaceDown === true);
+
+    if (dealerFaceDownCard) {
+      // If dealer's face down card is also a Joker, use dealer's face up card
+      if (dealerFaceDownCard.rank === 'JOKER') {
+        const dealerFaceUpCard = dealerHand.find(c => c.isFaceDown === false);
+        if (dealerFaceUpCard) {
+          const jokerValue = getCardValue(dealerFaceUpCard);
+          if (jokerValue !== null) {
+            value += jokerValue * jokers.length;
+          }
+        }
+      } else {
+        // Use dealer's face down card value
+        const jokerValue = getCardValue(dealerFaceDownCard);
+        if (jokerValue !== null) {
+          value += jokerValue * jokers.length;
+        }
+      }
+    }
+  }
+
+  // Adjust for aces
   while (value > 21 && aces > 0) {
     value -= 10;
     aces--;
@@ -142,6 +190,7 @@ function dealerPlay() {
   while (calculateHandValue(currentDealerHand) < 17) {
     checkAndReshuffle();
     const { card, remainingDeck } = drawCard(gameState.deck);
+    card.isFaceDown = false; // Dealer's new cards are face up
     currentDealerHand.push(card);
     gameState.deck = remainingDeck;
     broadcastGameState();
@@ -153,7 +202,7 @@ function dealerPlay() {
 
   const players = getPlayerArray();
   players.forEach((player) => {
-    const playerValue = calculateHandValue(player.hand);
+    const playerValue = calculateHandValue(player.hand, currentDealerHand);
     const playerBust = isBust(player.hand);
     const playerBJ = isBlackjack(player.hand);
     const dealerBJ = isBlackjack(currentDealerHand);
@@ -350,14 +399,23 @@ function setupSocketIO(server) {
         player.isUsingSpecialChance = false;
       });
 
+      // Deal cards: 1 face up, 1 face down for each player
       players.forEach((player) => {
-        for (let i = 0; i < 2; i++) {
-          checkAndReshuffle();
-          const { card, remainingDeck } = drawCard(gameState.deck);
-          player.hand.push(card);
-          gameState.deck = remainingDeck;
-        }
-        player.score = calculateHandValue(player.hand);
+        // First card: face up
+        checkAndReshuffle();
+        let { card, remainingDeck } = drawCard(gameState.deck);
+        card.isFaceDown = false;
+        player.hand.push(card);
+        gameState.deck = remainingDeck;
+
+        // Second card: face down
+        checkAndReshuffle();
+        ({ card, remainingDeck } = drawCard(gameState.deck));
+        card.isFaceDown = true;
+        player.hand.push(card);
+        gameState.deck = remainingDeck;
+
+        player.score = calculateHandValue(player.hand, gameState.dealerHand);
 
         if (isBlackjack(player.hand)) {
           player.status = 'finished';
@@ -367,12 +425,20 @@ function setupSocketIO(server) {
         }
       });
 
-      for (let i = 0; i < 2; i++) {
-        checkAndReshuffle();
-        const { card, remainingDeck } = drawCard(gameState.deck);
-        gameState.dealerHand.push(card);
-        gameState.deck = remainingDeck;
-      }
+      // Deal cards for dealer: 1 face up, 1 face down
+      // First card: face up
+      checkAndReshuffle();
+      let { card, remainingDeck } = drawCard(gameState.deck);
+      card.isFaceDown = false;
+      gameState.dealerHand.push(card);
+      gameState.deck = remainingDeck;
+
+      // Second card: face down
+      checkAndReshuffle();
+      ({ card, remainingDeck } = drawCard(gameState.deck));
+      card.isFaceDown = true;
+      gameState.dealerHand.push(card);
+      gameState.deck = remainingDeck;
 
       const allBlackjack = players.every((p) => p.status === 'finished');
       if (allBlackjack) {
@@ -386,6 +452,65 @@ function setupSocketIO(server) {
         }
         broadcastGameState();
       }
+    });
+
+    socket.on('shuffleFaceDownCards', () => {
+      const player = gameState.players.get(socket.id);
+      if (!player) {
+        socket.emit('error', { message: 'You are not in the game.' });
+        return;
+      }
+
+      if (gameState.gameStatus !== 'playing' && gameState.gameStatus !== 'dealing') {
+        socket.emit('error', { message: 'Cannot shuffle cards at this time.' });
+        return;
+      }
+
+      // Collect all face down cards from all players and dealer
+      const faceDownCards = [];
+      const players = getPlayerArray();
+
+      // Collect from players (iterate backwards to avoid index issues)
+      players.forEach((p) => {
+        for (let i = p.hand.length - 1; i >= 0; i--) {
+          if (p.hand[i].isFaceDown) {
+            faceDownCards.push(p.hand[i]);
+            p.hand.splice(i, 1);
+          }
+        }
+      });
+
+      // Collect from dealer (iterate backwards)
+      for (let i = gameState.dealerHand.length - 1; i >= 0; i--) {
+        if (gameState.dealerHand[i].isFaceDown) {
+          faceDownCards.push(gameState.dealerHand[i]);
+          gameState.dealerHand.splice(i, 1);
+        }
+      }
+
+      // Shuffle the face down cards
+      const shuffledFaceDownCards = shuffleDeck(faceDownCards);
+
+      // Redistribute face down cards back to players and dealer
+      let cardIndex = 0;
+      players.forEach((p) => {
+        // Add one face down card back
+        if (cardIndex < shuffledFaceDownCards.length) {
+          shuffledFaceDownCards[cardIndex].isFaceDown = true;
+          p.hand.push(shuffledFaceDownCards[cardIndex]);
+          cardIndex++;
+        }
+        // Recalculate score
+        p.score = calculateHandValue(p.hand, gameState.dealerHand);
+      });
+
+      // Add remaining face down card to dealer
+      if (cardIndex < shuffledFaceDownCards.length) {
+        shuffledFaceDownCards[cardIndex].isFaceDown = true;
+        gameState.dealerHand.push(shuffledFaceDownCards[cardIndex]);
+      }
+
+      broadcastGameState();
     });
 
     socket.on('playerHit', () => {
@@ -402,9 +527,10 @@ function setupSocketIO(server) {
 
       checkAndReshuffle();
       const { card, remainingDeck } = drawCard(gameState.deck);
+      card.isFaceDown = false; // New cards are always face up
       player.hand.push(card);
       gameState.deck = remainingDeck;
-      player.score = calculateHandValue(player.hand);
+      player.score = calculateHandValue(player.hand, gameState.dealerHand);
 
       if (isBust(player.hand)) {
         player.status = 'finished';
@@ -459,9 +585,10 @@ function setupSocketIO(server) {
 
       checkAndReshuffle();
       const { card, remainingDeck } = drawCard(gameState.deck);
+      card.isFaceDown = false; // New cards are always face up
       player.hand.push(card);
       gameState.deck = remainingDeck;
-      player.score = calculateHandValue(player.hand);
+      player.score = calculateHandValue(player.hand, gameState.dealerHand);
       player.status = 'finished';
 
       if (isBust(player.hand)) {
@@ -506,11 +633,12 @@ function setupSocketIO(server) {
       setTimeout(() => {
         checkAndReshuffle();
         const { card, remainingDeck } = drawCard(gameState.deck);
+        card.isFaceDown = false; // Replaced cards are always face up
 
         // Replace the card at the specified index
         player.hand[cardIndex] = card;
         gameState.deck = remainingDeck;
-        player.score = calculateHandValue(player.hand);
+        player.score = calculateHandValue(player.hand, gameState.dealerHand);
         player.specialChancesUsed = (player.specialChancesUsed || 0) + 1;
         player.isUsingSpecialChance = false;
 
@@ -557,7 +685,7 @@ function setupSocketIO(server) {
             player.hand.push(card);
             gameState.deck = remainingDeck;
           }
-          player.score = calculateHandValue(player.hand);
+          player.score = calculateHandValue(player.hand, gameState.dealerHand);
 
           if (isBlackjack(player.hand)) {
             player.status = 'finished';

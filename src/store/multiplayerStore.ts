@@ -20,6 +20,7 @@ interface MultiplayerStore {
   playerStand: () => void;
   playerDouble: () => void;
   requestSpecialChance: (cardIndex: number) => void;
+  shuffleFaceDownCards: () => void;
   newGame: () => void;
   getCurrentPlayer: () => Player | null;
   isMyTurn: () => boolean;
@@ -194,6 +195,15 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
     }
     if (socket && socket.connected) {
       socket.emit('requestSpecialChance', { cardIndex });
+    } else {
+      set({ error: 'Not connected to server' });
+    }
+  },
+
+  shuffleFaceDownCards: () => {
+    const { socket } = get();
+    if (socket && socket.connected) {
+      socket.emit('shuffleFaceDownCards');
     } else {
       set({ error: 'Not connected to server' });
     }
