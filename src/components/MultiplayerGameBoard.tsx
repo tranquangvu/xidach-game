@@ -129,6 +129,7 @@ export const MultiplayerGameBoard = () => {
                          gameState.gameStatus === 'waiting';
 
   const isWaiting = gameState.gameStatus === 'waiting';
+  const isFinished = gameState.gameStatus === 'finished';
 
   const cardSelectionValue = {
     selectedCardIndex,
