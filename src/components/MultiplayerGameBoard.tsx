@@ -168,6 +168,7 @@ export const MultiplayerGameBoard = () => {
               score={gameState.dealerScore}
               isDealer={true}
               hideFirstCard={hideDealerCard}
+              isFinished={isFinished}
               result={null}
             />
           </div>

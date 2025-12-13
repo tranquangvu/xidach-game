@@ -38,7 +38,8 @@ export const Hand = ({
   specialChancesRemaining,
   isUsingSpecialChance = false
 }: HandProps) => {
-  const displayScore = isDealer && hideFirstCard ? '?' : score;
+  // Show dealer score as '?' only when game is not finished and first card is hidden
+  const displayScore = isDealer && hideFirstCard && !isFinished ? '?' : score;
   const isBust = score > 21;
   const isBlackjack = cards.length === 2 && score === 21;
 
@@ -114,19 +115,31 @@ export const Hand = ({
           {cards.length === 0 ? (
             <div className="text-gray-500 font-pixel text-xs">No cards</div>
           ) : (
-            cards.map((card, index) => (
-              <Card
-                key={card.id}
-                card={card}
-                isHidden={isDealer && hideFirstCard && index === 1} // Hide second card (face down) for dealer
-                index={index}
-                onClick={onCardSelect && isCurrentPlayer && !isFinished && !isDealer ? () => onCardSelect(index) : undefined}
-                isSelected={selectedCardIndex === index}
-                isReplacing={isUsingSpecialChance && selectedCardIndex === index}
-                showFaceDown={isCurrentPlayer && !isDealer && !isFinished} // Show face down cards for current player
-                isShuffleable={isCurrentPlayer && !isDealer && !isFinished && card.isFaceDown} // Mark face down cards as shuffleable for current player
-              />
-            ))
+            cards.map((card, index) => {
+              // Show face down cards only for player's own hand, or when game is finished (show all)
+              const shouldShowFaceDown = isMyHand || isFinished;
+              // Hide face down cards of other players (unless game is finished)
+              // For dealer, hide second card unless game is finished
+              const shouldHide = isDealer
+                ? (hideFirstCard && index === 1 && !isFinished) // Hide dealer's second card unless finished
+                : (!isMyHand && !isFinished && card.isFaceDown); // Hide other players' face down cards unless finished
+              // Mark as shuffleable only for player's own hand when it's their turn and card is face down
+              const isShuffleableCard = isMyHand && isCurrentPlayer && !isFinished && card.isFaceDown;
+
+              return (
+                <Card
+                  key={card.id}
+                  card={card}
+                  isHidden={shouldHide} // Hide dealer's second card or other players' face down cards
+                  index={index}
+                  onClick={onCardSelect && isCurrentPlayer && !isFinished && !isDealer ? () => onCardSelect(index) : undefined}
+                  isSelected={selectedCardIndex === index}
+                  isReplacing={isUsingSpecialChance && selectedCardIndex === index}
+                  showFaceDown={shouldShowFaceDown} // Show face down cards for own hand or when finished
+                  isShuffleable={isShuffleableCard} // Mark face down cards as shuffleable for current player's own hand
+                />
+              );
+            })
           )}
         </div>
       )}
