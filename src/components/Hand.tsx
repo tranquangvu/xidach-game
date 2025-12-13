@@ -91,20 +91,29 @@ export const Hand = ({
         )}
         {showScoreAndCards && (
           <div className="text-sm md:text-base xl:text-sm font-pixel text-center">
-            <span className="mr-1 md:mr-2">
-              Score: <span className={isBust ? 'text-red-500' : isBlackjack ? 'text-yellow-400' : 'text-white'}>
-                {displayScore}
-              </span>
-            </span>
-            {isBust && <span className="text-red-500 ml-1 md:ml-2 text-xs">BUST!</span>}
-            {isBlackjack && <span className="text-yellow-400 ml-1 md:ml-2 text-xs">BLACKJACK!</span>}
-            {resultText && (
-              <span className={`ml-1 md:ml-2 text-xs ${
-                result === 'win' || result === 'blackjack' ? 'text-neon-green' :
-                result === 'lose' || result === 'bust' ? 'text-red-500' :
-                'text-yellow-400'
-              }`}>
-                {resultText}
+            {/* Only show score for player's own hand or when game is finished */}
+            {(isMyHand || isFinished || isDealer) ? (
+              <>
+                <span className="mr-1 md:mr-2">
+                  Score: <span className={isBust ? 'text-red-500' : isBlackjack ? 'text-yellow-400' : 'text-white'}>
+                    {displayScore}
+                  </span>
+                </span>
+                {isBust && <span className="text-red-500 ml-1 md:ml-2 text-xs">BUST!</span>}
+                {isBlackjack && <span className="text-yellow-400 ml-1 md:ml-2 text-xs">BLACKJACK!</span>}
+                {resultText && (
+                  <span className={`ml-1 md:ml-2 text-xs ${
+                    result === 'win' || result === 'blackjack' ? 'text-neon-green' :
+                    result === 'lose' || result === 'bust' ? 'text-red-500' :
+                    'text-yellow-400'
+                  }`}>
+                    {resultText}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="mr-1 md:mr-2 text-gray-500">
+                Score: ?
               </span>
             )}
           </div>
@@ -123,8 +132,8 @@ export const Hand = ({
               const shouldHide = isDealer
                 ? (hideFirstCard && index === 1 && !isFinished) // Hide dealer's second card unless finished
                 : (!isMyHand && !isFinished && card.isFaceDown); // Hide other players' face down cards unless finished
-              // Mark as shuffleable only for player's own hand when it's their turn and card is face down
-              const isShuffleableCard = isMyHand && isCurrentPlayer && !isFinished && card.isFaceDown;
+              // Mark as shuffleable for face down cards when player can see them (own hand or finished)
+              const isShuffleableCard = card.isFaceDown && shouldShowFaceDown && !isFinished;
 
               return (
                 <Card
