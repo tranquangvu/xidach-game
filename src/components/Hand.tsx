@@ -118,12 +118,13 @@ export const Hand = ({
               <Card
                 key={card.id}
                 card={card}
-                isHidden={isDealer && hideFirstCard && index === 0}
+                isHidden={isDealer && hideFirstCard && index === 1} // Hide second card (face down) for dealer
                 index={index}
                 onClick={onCardSelect && isCurrentPlayer && !isFinished && !isDealer ? () => onCardSelect(index) : undefined}
                 isSelected={selectedCardIndex === index}
                 isReplacing={isUsingSpecialChance && selectedCardIndex === index}
                 showFaceDown={isCurrentPlayer && !isDealer && !isFinished} // Show face down cards for current player
+                isShuffleable={isCurrentPlayer && !isDealer && !isFinished && card.isFaceDown} // Mark face down cards as shuffleable for current player
               />
             ))
           )}
